@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>贪吃蛇游戏</title>
+    <style>
+        #map {
+            width: 800px;
+            height: 600px;
+            background: #ccc;
+            position: relative;
+            /* position: absolute; */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        // 创建食物
+        !(function () {
+            var foodList = [];
+
+            function Food(width, height, color) {
+                this.width = width || 20;
+                this.height = height || 20;
+                this.color = color || 'green';
+                this.x = 0;
+                this.y = 0;
+            };
+            Food.prototype.init = function (map) {
+                clear();
+                var div = document.createElement('div');
+                div.style.position = 'absolute';
+                div.style.backgroundColor = this.color;
+                div.style.width = this.width + 'px';
+                div.style.height = this.height + 'px';
+                div.style.position = this.x + 'px';
+                div.style.position = this.y + 'px';
+                map.appendChild(div);
+                foodList.push(div);
+                var randomNum = this.Random(map);
+                div.style.left = (randomNum.X * this.width) + 'px';
+                this.x = randomNum.X
+                div.style.top = (randomNum.Y * this.height) + 'px';
+                this.y = randomNum.Y
+            }
+            Food.prototype.Random = function (map) {
+                var x = Math.floor(Math.random() * (map.offsetWidth / this.width));
+                var y = Math.floor(Math.random() * (map.offsetHeight / this.height));
+                return {
+                    X: x,
+                    Y: y
+                }
+            }
+
+            function clear() {
+                console.log(foodList)
+                for (let i = foodList.length - 1; i >= 0; i--) {
+                    var ele = foodList[i];
+                    ele.parentNode.removeChild(ele);
+                    foodList.splice(i, 1);
+                }
+            }
+            window.Food = Food;
+        })();
+
+        // 蛇初始化
+        !(function () {
+            var elements = []
+
+            function Snake(width, height, headColor, fooderColor) {
+                this.width = width || 20;
+                this.height = height || 20;
+                this.headColor = headColor || 'red';
+                this.fooderColor = fooderColor || 'yellow';
+                this.body = [{
+                        x: 3,
+                        y: 2,
+                        color: this.headColor
+                    },
+                    {
+                        x: 2,
+                        y: 2,
+                        color: this.fooderColor
+                    },
+                    {
+                        x: 1,
+                        y: 2,
+                        color: this.fooderColor
+                    },
+                ]
+                this.direction = 'right';
+            }
+            Snake.prototype.init = function (map) {
+                this.remove();
+                for (let i = 0; i < this.body.length; i++) {
+                    var ele = this.body[i];
+                    var div = document.createElement('div');
+                    div.style.position = 'absolute';
+                    div.style.backgroundColor = ele.color;
+                    div.style.width = this.width + 'px';
+                    div.style.height = this.height + 'px';
+                    div.style.left = (ele.x * this.width) + 'px';
+                    div.style.top = (ele.y * this.height) + 'px';
+                    map.appendChild(div)
+                    elements.push(div)
+                }
+            }
+            Snake.prototype.remove = function () {
+                for (let i = elements.length - 1; i >= 0; i--) {
+                    var ele = elements[i];
+                    ele.parentNode.removeChild(ele);
+                    elements.splice(i, 1);
+                }
+            }
+            Snake.prototype.move = function (food, map) {
+                for (let i = this.body.length - 1; i > 0; i--) {
+                    this.body[i].x = this.body[i - 1].x;
+                    this.body[i].y = this.body[i - 1].y;
+                }
+                var first = this.body[0]
+                switch (this.direction) {
+                    case 'right':
+                        first.x += 1;
+                        break;
+                    case 'bottom':
+                        first.y += 1;
+                        break;
+                    case 'left':
+                        first.x -= 1;
+                        break;
+                    case 'top':
+                        first.y -= 1;
+                        break;
+                }
+                var snakeHeadX = this.body[0].x;
+                var snakeHeadY = this.body[0].y;
+                if (snakeHeadX == food.x && snakeHeadY == food.y) {
+                    var ele = this.body[this.body.length - 1];
+                    this.body.push({
+                        x: ele.x,
+                        y: ele.y,
+                        color: ele.color
+                    });
+                    food.init(map);
+                }
+            }
+            Snake.prototype.add
+            window.Snake = Snake;
+        })();
+        // 游戏初始化
+        !(function () {
+            function Game(map, food, snake) {
+                this.food = food || new Food();
+                this.snake = snake || new Snake();
+                this.map = map;
+            }
+            Game.prototype.init = function () {
+                this.food.init(map);
+                this.snake.init(map);
+                this.AddEvent();
+                this.runSnake(this.food, this.map);
+            }
+            Game.prototype.runSnake = function (food, map) {
+                var timeId = setInterval(function () {
+                    this.snake.move(this.food, this.map);
+                    this.snake.init(this.map);
+                    var mapMaxY = map.offsetHeight / this.snake.height;
+                    var mapMaxX = map.offsetWidth / this.snake.width;
+                    var snakeHeadY = this.snake.body[0].y;
+                    var snakeHeadX = this.snake.body[0].x;
+                    if ((snakeHeadY < 0 || snakeHeadY >= mapMaxY) || (snakeHeadX < 0 || snakeHeadX >=
+                            mapMaxX)) {
+                        clearInterval(timeId);
+                        alert('游戏结束');
+                    }
+                }.bind(this), 200);
+            }
+            Game.prototype.AddEvent = function () {
+                window.addEventListener('keyup', function (e) {
+                    switch (e.keyCode) {
+                        case 37:
+                            this.snake.direction = 'left';
+                            break;
+                        case 38:
+                            this.snake.direction = 'top';
+                            break;
+                        case 39:
+                            this.snake.direction = 'right';
+                            break;
+                        case 40:
+                            this.snake.direction = 'bottom';
+                            break;
+                    }
+                }.bind(this))
+            }
+            window.Game = Game;
+        })();
+        var map = document.getElementById('map');
+        var game = new Game(map);
+        game.init();
+    </script>
+</body>
+
+</html>
